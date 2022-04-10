@@ -13,10 +13,10 @@ let upload = setupMulter()
 router.post('/', (req, res) => { uploadFile(req, res, upload); });
 
 // File download Endpoint-> '/files/:publicKey' [GET]
-router.get('/:uuid', async (req, res) => { downloadFile(req, res); });
+router.get('/:uuid', (req, res) => { downloadFile(req, res); });
 
 // File removal Endpoint-> '/files/:privateKey' [DELETE]
-router.delete('/:pvtKey', async (req, res) => { deleteFile(req, res); });
+router.delete('/:pvtKey', (req, res) => { deleteFile(req, res); });
 
 function setupMulter() {
     // Multer configuration for handling incoming 'multipart/form-data i.e. file upload
@@ -68,7 +68,7 @@ function uploadFile(req, res, upload) {
     });
 }
 
-function downloadFile(req, res) {
+async function downloadFile (req, res) {
     try {
         const file = await File.findOne({ uuid: req.params.uuid });
         //Link expired i.e. file no longer available
@@ -83,7 +83,7 @@ function downloadFile(req, res) {
     }
 }
 
-function deleteFile(req, res) {
+async function deleteFile(req, res) {
     try {
         const file = await File.findOne({ pvtKey: req.params.pvtKey });
         //Link expired i.e. file no longer available

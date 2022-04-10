@@ -10,6 +10,6 @@ connectDB();
 
 // Routes
 app.get('/', (req, res)=>{ res.send("Welcome to FileShare Api!");});
-app.use('/files', require('./routes/files_updt'));
+app.use('/files', require('./routes/files'));
 
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
