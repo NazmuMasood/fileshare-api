@@ -9,7 +9,7 @@ const connectDB = require('./config/db');
 connectDB();
 
 // Routes
-app.get('/', (req, res)=>{ res.send("Hellow World");});
-app.use('/files', require('./routes/files'));
+app.get('/', (req, res)=>{ res.send("Welcome to FileShare Api!");});
+app.use('/files', require('./routes/files_updt'));
 
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
