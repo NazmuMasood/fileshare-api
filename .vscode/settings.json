@@ -1,0 +1,22 @@
+{
+    "editor.fontFamily": "JetBrains Mono", 
+    "editor.fontLigatures": true,
+    // "editor.fontWeight": 450,
+    //"editor.lineHeight": 22,
+    //JetBrains Mono, Monaco, Roboto Mono, SF Pro Display, Fira Code, Meslo LG M DZ, Menlo
+    "editor.fontSize": 15,
+    
+    "editor.minimap.enabled": false,
+    "breadcrumbs.enabled": false,
+    
+    "terminal.integrated.fontSize": 14,
+    "terminal.integrated.fontFamily": "JetBrains Mono", 
+
+    "workbench.colorCustomizations": {
+        "statusBar.background" : "#1A1A1A",
+        "statusBar.noFolderBackground" : "#212121",
+        "statusBar.debuggingBackground": "#263238",
+    },
+
+    "css.lint.unknownAtRules": "ignore"
+}
