@@ -6,8 +6,8 @@ const path = require('path');
 const File = require('../models/file');
 const { v4: uuidv4 } = require('uuid');
 const fs = require('fs');
-
 const Redis = require('redis');
+
 const redisClient = Redis.createClient(
     process.env.REDIS_URL,
 );
@@ -125,22 +125,25 @@ function chkDailyUsgLimitExceed(ipAddr, trnsctnType, req, res){
     redisKey = `${ipAddr}_${trnsctnType}_count`;
 
     redisClient.get(redisKey, async(error, trnsctnCount)=>{
+        
         if(error){console.log(error); return;}
+        
         //Key exists in Redis
         if(trnsctnCount!=null){
             const intTrnsctnCount = parseInt(trnsctnCount);
-            console.log(`intTrnsctnCount: ${intTrnsctnCount}`);
+            console.log(`Cache hit - ${ipAddr}_trnsctn_count: ${intTrnsctnCount}`);
             //Daily limit reached
             if(intTrnsctnCount==DAILY_LIMIT){ return res.json({error: "Daily limit reached."});}
             //Daily limit still not reached
             else{
-                console.log(`Cache hit - ${ipAddr}_trnsctn_count: ${intTrnsctnCount}`);
                 redisClient.set(redisKey, intTrnsctnCount+1, 'KEEPTTL');
                 return res.json({TRANSACTION_COUNT_TODAY: intTrnsctnCount+1});
             }
         }
+       
         // First time - save Key into Redis 
         else{
+            console.log(`Cache miss - Initial entry`);
             redisClient.setex(
                 redisKey,
                 process.env.REDIS_DEFAULT_EXPIRATION_TIME,
