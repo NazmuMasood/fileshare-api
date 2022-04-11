@@ -8,10 +8,7 @@ const { v4: uuidv4 } = require('uuid');
 const fs = require('fs');
 const Redis = require('redis');
 
-const redisClient = Redis.createClient(
-    process.env.REDIS_URL,
-);
-redisClient.auth(process.env.REDIS_PASSWORD);
+let redisClient = setupRedisClient(Redis);
 
 let upload = setupMulter()
 
@@ -28,6 +25,15 @@ router.get('/:uuid', (req, res) => {
 
 // File removal Endpoint-> '/files/:privateKey' [DELETE]
 router.delete('/:pvtKey', (req, res) => { deleteFile(req, res); });
+
+function setupRedisClient(Redis){
+    let redisClient = Redis.createClient(
+        process.env.REDIS_URL,
+    );
+    redisClient.auth(process.env.REDIS_PASSWORD);
+    
+    return redisClient;
+}
 
 function setupMulter() {
     // Multer configuration for handling incoming 'multipart/form-data i.e. file upload
