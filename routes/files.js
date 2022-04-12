@@ -29,9 +29,7 @@ router.delete('/:pvtKey', (req, res) => { deleteFile(req, res); });
 function setupRedisClient(Redis){
     let redisClient = Redis.createClient(
         process.env.REDIS_URL,
-    );
-    redisClient.auth(process.env.REDIS_PASSWORD);
-    
+    );    
     return redisClient;
 }
 
