@@ -10,6 +10,13 @@ app.set('trust proxy', true);
 const connectDB = require('./config/db');
 connectDB();
 
+// Scheduler to cleanup files
+const schedule = require('node-schedule');
+const job = schedule.scheduleJob('0 0 */24 * * *', function(){
+    console.log('Running scheduled script..');
+    require('./script');
+});
+
 // Routes
 app.get('/', (req, res)=>{ res.send("Welcome to FileShare Api!");});
 app.use('/files', require('./routes/files'));
