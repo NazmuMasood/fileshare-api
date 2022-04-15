@@ -11,7 +11,6 @@ const corsOptions = {
   // ['http://localhost:3000', 'http://localhost:5000']
 }
 app.use(cors(corsOptions))
-app.set('trust proxy', true);
 
 // Database configuration
 const connectDB = require('./config/db');
@@ -25,6 +24,8 @@ const job = schedule.scheduleJob('0 0 */24 * * *', function(){
     console.log('Running scheduled script..');
     require('./script');
 });
+
+app.set('trust proxy', true);
 
 // Routes
 app.get('/', (req, res)=>{ res.send("Welcome to FileShare Api!");});
