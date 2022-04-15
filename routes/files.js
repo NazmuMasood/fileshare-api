@@ -227,22 +227,4 @@ function setupMulter() {
     return upload;
 }
 
-function getOrSetCache(key, cb) {
-    return new Promise((resolve, reject) => {
-        redisClient.get(key, async (error, data) => {
-            if (error) {
-                return reject(error);
-            }
-            if (data != null) {
-                // return resolve(JSON.parse(data));
-                // redisClient.set
-            }
-
-            const freshData = await cb();
-            redisClient.setEx(key, process.env.REDIS_DEFAULT_EXPIRATION_TIME, freshData);
-            resolve(freshData);
-        });
-    });
-}
-
 module.exports = router;
