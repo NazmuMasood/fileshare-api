@@ -10,76 +10,70 @@ const Redis = require('redis');
 const { resolve } = require('path');
 
 let redisClient = setupRedisClient(Redis);
-
-let upload = setupMulter()
+let upload = setupMulter();
 
 // File upload Endpoint-> '/files' [POST]
-router.post('/', (req, res) => { uploadFile(req, res, upload); });
+router.post('/', (req, res) => { handleUpload(req, res, upload); });
 
 // File download Endpoint-> '/files/:publicKey' [GET]
 router.get('/:uuid', (req, res) => { handleDwnload(req, res); });
 
-// File removal Endpoint-> '/files/:privateKey' [DELETE]
+// File deletion Endpoint-> '/files/:privateKey' [DELETE]
 router.delete('/:pvtKey', (req, res) => { deleteFile(req, res); });
 
-function setupRedisClient(Redis) {
-    let redisClient = Redis.createClient(
-        process.env.REDIS_URL,
-    );
-    return redisClient;
-}
-
-function setupMulter() {
-    // Multer configuration for handling incoming 'multipart/form-data i.e. file upload
-    let storage = multer.diskStorage({
-        destination: (req, file, cb) => cb(null, 'uploads/'),
-        filename: (req, file, cb) => {
-            const uniqueName = `${Date.now()}_${Math.round(Math.random() * 1E9)}${path.extname(file.originalname)}`;
-            cb(null, uniqueName);
-            console.log(uniqueName);
-        },
-    });
-
-    let upload = multer({
-        storage: storage, limit: { filesize: 1000000 * 100 }
-    }).single('myfile'); //100mb
-
-    return upload;
-}
-
+// ----- Handle File Uploads --------
+async function handleUpload(req, res, upload){
+    try {
+        await uploadFile(req, res, upload);
+    }
+    catch (error) {
+        console.log(`${error.message}`);
+        return res.status(500).send({ error: error.message });
+    }
+} 
 function uploadFile(req, res, upload) {
     console.log('Uploading file.......');
-    //Store file
-    upload(req, res, async (err) => {
+    return new Promise((resolve, reject) => {
+        //Store file
+        upload(req, res, async (err) => {
 
-        if (err) {
-            return res.status(500).send({ error: err.message });
-        }
+            if (err) {
+                return reject({message:err.message});
+            }
+            //Validate request
+            if (!req.file) {
+                return reject({message:'No files were uploaded.'});
+            }
 
-        //Validate request
-        if (!req.file) {
-            return res.json({ error: 'All fields are required.' });
-        }
+            await chkDailyUsgLimitExceed('upload', req, res)
+            .then(async()=>{
+                //Store into database
+                const file = new File({
+                    filename: req.file.filename,
+                    uuid: uuidv4(),
+                    pvtKey: uuidv4(),
+                    path: req.file.path,
+                    size: req.file.size
+                });
+                const response = await file.save();
 
-        //Store into database
-        const file = new File({
-            filename: req.file.filename,
-            uuid: uuidv4(),
-            pvtKey: uuidv4(),
-            path: req.file.path,
-            size: req.file.size
-        });
-        const response = await file.save();
+                return res.json({
+                    status: 'File upload success.',
+                    file: `${process.env.APP_BASE_URL}/files/${response.uuid}`,
+                    publicKey: response.uuid,
+                    privateKey: response.pvtKey
+                });
+            }).catch(error=>{
+                fs.unlinkSync(req.file.path);
+                return reject({message: error.message});
+            });
 
-        return res.json({
-            status: 'File upload success.',
-            file: `${process.env.APP_BASE_URL}/files/${response.uuid}`,
-            publicKey: response.uuid,
-            privateKey: response.pvtKey
+            
         });
     });
 }
 
+// ----- Handle File Downloads --------
 async function handleDwnload(req, res) {
     try {
         await Promise.all([
@@ -92,7 +86,6 @@ async function handleDwnload(req, res) {
         return res.status(500).send({ error: error.message });
     }
 }
-
 function downloadFile(req, res) {
     console.log('Proceeding downloading.........');
     return new Promise(async (resolve, reject) => {
@@ -130,6 +123,7 @@ function chkFileExists(req, res) {
     });
 }
 
+// ----- Handle Rate/Usage Limit --------
 function chkDailyUsgLimitExceed(trnsctnType, req, res) {
     console.log('Checking if daily limit exceeded.........');
     return new Promise((resolve, reject) => {
@@ -188,6 +182,7 @@ function chkDailyUsgLimitExceed(trnsctnType, req, res) {
 
 }
 
+// ----- Handle File Deletion --------
 async function deleteFile(req, res) {
     try {
         const file = await File.findOne({ pvtKey: req.params.pvtKey });
@@ -204,6 +199,32 @@ async function deleteFile(req, res) {
     } catch (err) {
         return res.status(500).send({ error: err.message });
     }
+}
+
+// ----- Handle Redis client setup for 'rate limiter' feature --------
+function setupRedisClient(Redis) {
+    let redisClient = Redis.createClient(
+        process.env.REDIS_URL,
+    );
+    return redisClient;
+}
+
+// Multer configuration for handling incoming 'multipart/form-data i.e. file upload
+function setupMulter() {
+    let storage = multer.diskStorage({
+        destination: (req, file, cb) => cb(null, 'uploads/'),
+        filename: (req, file, cb) => {
+            const uniqueName = `${Date.now()}_${Math.round(Math.random() * 1E9)}${path.extname(file.originalname)}`;
+            cb(null, uniqueName);
+            console.log(uniqueName);
+        },
+    });
+
+    let upload = multer({
+        storage: storage, limit: { filesize: 1000000 * 10 }
+    }).single('myfile'); //100mb
+
+    return upload;
 }
 
 function getOrSetCache(key, cb) {
