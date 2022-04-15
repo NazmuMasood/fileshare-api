@@ -4,5 +4,4 @@ uploads/*
 node_modules
 files_updt.js
 .vscode
-test.js
 dummy.js
