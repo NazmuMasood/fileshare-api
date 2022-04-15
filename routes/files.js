@@ -171,7 +171,7 @@ function chkDailyUsgLimitExceed(trnsctnType, req, res) {
                 console.log(`Cache miss - Initial entry`);
                 redisClient.setex(
                     redisKey,
-                    process.env.REDIS_DEFAULT_EXPIRATION_TIME,
+                    process.env.REDIS_DEFAULT_EXPIRATION_TIME_IN_SECOND,
                     1
                 );
                 // res.json({TRANSACTION_COUNT_TODAY: 1});
