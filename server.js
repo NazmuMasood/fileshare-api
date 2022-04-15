@@ -3,7 +3,14 @@ require('dotenv').config()
 const express = require('express')
 const app = express()
 const PORT = process.env.PORT || 5000
+const cors = require('cors');
 
+// Cors 
+const corsOptions = {
+  origin: process.env.ALLOWED_CLIENTS.split(',')
+  // ['http://localhost:3000', 'http://localhost:5000']
+}
+app.use(cors(corsOptions))
 app.set('trust proxy', true);
 
 // Database configuration
@@ -12,7 +19,9 @@ connectDB();
 
 // Scheduler to cleanup files
 const schedule = require('node-schedule');
-const job = schedule.scheduleJob('0 0 */24 * * *', function(){
+const job = schedule.scheduleJob('0 0 */24 * * *', function(){ 
+    // this job will run every 24 hours
+    // change the above 'schedule rule' to '* * * * * *' to run the script right away
     console.log('Running scheduled script..');
     require('./script');
 });
