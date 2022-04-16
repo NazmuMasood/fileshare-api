@@ -18,4 +18,4 @@ DAILY_DOWNLOAD_LIMIT=5 // controls the highest download limit for a day
 PERIOD_OF_INACTIVITY_IN_MILISECOND=86400000 // Inactive_period used in a cleanup_job to delete files that are older than this period
 REDIS_DEFAULT_EXPIRATION_TIME=86400// Used in Rate Limiter to store a user's api_request_frequency for this time_period i.e. 24hrs 
 ```
-
+Notice: Task1 was fully implemented except for the testing part and the FOLDER .env variable. Testing couldn't complete bacause of a busy work week and the FOLDER variable wasn't clear to my understanding.
